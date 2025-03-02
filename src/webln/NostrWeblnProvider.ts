@@ -77,6 +77,7 @@ const nip47ToWeblnRequestMap: Record<
   multi_pay_invoice: "sendMultiPayment",
   multi_pay_keysend: "multiKeysend",
   sign_message: "signMessage",
+  get_utxos: "get_utxos",
 };
 
 type NewNostrWeblnProviderOptions = NewNWCClientOptions & {

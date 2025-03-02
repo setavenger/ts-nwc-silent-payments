@@ -32,7 +32,8 @@ type Nip47SingleMethod =
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
-  | "create_connection";
+  | "create_connection"
+  | "get_utxos";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
@@ -61,7 +62,7 @@ export type Nip47GetInfoResponse = {
 export type Nip47GetBudgetResponse =
   | {
       used_budget: number; // msats
-      total_budget: number; // msats
+      otal_budget: number; // msats
       renews_at?: number; // timestamp
       renewal_period: BudgetRenewalPeriod;
     }
