@@ -882,7 +882,7 @@ export class NWCClient {
     };
   }
 
-  private async executeNip47Request<T>(
+  async executeNip47Request<T>(
     nip47Method: Nip47SingleMethod,
     params: unknown,
     resultValidator: (result: T) => boolean,
