@@ -13,6 +13,7 @@ import {
 import { NWCAuthorizationUrlOptions } from "./types";
 import { hexToBytes, bytesToHex } from "@noble/hashes/utils";
 import { Subscription } from "nostr-tools/lib/types/abstract-relay";
+import { BlindBitUtxo } from "./blindbit";
 
 type WithDTag = {
   dTag: string;
@@ -24,6 +25,7 @@ type WithOptionalId = {
 
 type Nip47SingleMethod =
   | "get_info"
+  | "get_info_blindbit"
   | "get_balance"
   | "get_budget"
   | "make_invoice"
@@ -33,7 +35,7 @@ type Nip47SingleMethod =
   | "list_transactions"
   | "sign_message"
   | "create_connection"
-  | "get_utxos";
+  | "list_utxos";
 
 type Nip47MultiMethod = "multi_pay_invoice" | "multi_pay_keysend";
 
@@ -62,7 +64,7 @@ export type Nip47GetInfoResponse = {
 export type Nip47GetBudgetResponse =
   | {
       used_budget: number; // msats
-      otal_budget: number; // msats
+      total_budget: number; // msats
       renews_at?: number; // timestamp
       renewal_period: BudgetRenewalPeriod;
     }
@@ -139,6 +141,11 @@ export type Nip47Transaction = {
   created_at: number;
   expires_at: number;
   metadata?: Record<string, unknown>;
+};
+
+// Exteneded Nip47 for BlindBit functionality
+export type Nip47ExtListUtxosResponse = {
+  utxos: BlindBitUtxo[];
 };
 
 export type Nip47NotificationType = Nip47Notification["notification_type"];
@@ -583,6 +590,21 @@ export class NWCClient {
     };
   }
 
+  async getInfoBlindBit(): Promise<Nip47GetInfoResponse> {
+    try {
+      const result = await this.executeNip47Request<Nip47GetInfoResponse>(
+        "get_info",
+        {},
+        (result) => !!result.methods,
+        { replyTimeout: 10000 },
+      );
+      return result;
+    } catch (error) {
+      console.error("Failed to request get_info", error);
+      throw error;
+    }
+  }
+
   async getInfo(): Promise<Nip47GetInfoResponse> {
     try {
       const result = await this.executeNip47Request<Nip47GetInfoResponse>(
@@ -794,6 +816,24 @@ export class NWCClient {
       return result;
     } catch (error) {
       console.error("Failed to request list_transactions", error);
+      throw error;
+    }
+  }
+
+  // todo: can be expanded later to include filters for e.g. only unspent utxos
+  async listUtxos(): Promise<Nip47ExtListUtxosResponse> {
+    try {
+      // maybe we can tailor the response to our needs
+      const result = await this.executeNip47Request<Nip47ExtListUtxosResponse>(
+        "list_utxos",
+        {},
+        (response) => !!response.utxos,
+        { replyTimeout: 10000 },
+      );
+
+      return result;
+    } catch (error) {
+      console.error("Failed to request list_utxos", error);
       throw error;
     }
   }

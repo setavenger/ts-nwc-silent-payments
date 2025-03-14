@@ -18,12 +18,14 @@ import {
   NWCClient,
   NWCOptions,
   NewNWCClientOptions,
+  Nip47GetInfoResponse,
   Nip47Method,
   Nip47PayKeysendRequest,
   Nip47Transaction,
 } from "../NWCClient";
 import { toHexString } from "../utils";
 import { NWCAuthorizationUrlOptions } from "../types";
+import { BlindBitUtxo } from "../blindbit";
 
 // TODO: review fields (replace with camelCase)
 // TODO: consider move to webln-types package
@@ -32,6 +34,10 @@ export type Transaction = Nip47Transaction;
 // TODO: consider moving to webln-types package
 export type ListTransactionsResponse = {
   transactions: Transaction[];
+};
+
+export type ListUtxoResponse = {
+  utxos: BlindBitUtxo[];
 };
 
 // TODO: consider moving to webln-types package
@@ -68,6 +74,7 @@ const nip47ToWeblnRequestMap: Record<
   WebLNMethod
 > = {
   get_info: "getInfo",
+  get_info_blindbit: "getInfoBlindBit",
   get_balance: "getBalance",
   make_invoice: "makeInvoice",
   pay_invoice: "sendPayment",
@@ -77,7 +84,7 @@ const nip47ToWeblnRequestMap: Record<
   multi_pay_invoice: "sendMultiPayment",
   multi_pay_keysend: "multiKeysend",
   sign_message: "signMessage",
-  get_utxos: "get_utxos",
+  list_utxos: "listUtxos",
 };
 
 type NewNostrWeblnProviderOptions = NewNWCClientOptions & {
@@ -139,6 +146,17 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
   close() {
     return this.client.close();
+  }
+
+  async getInfoBlindBit(): Promise<Nip47GetInfoResponse> {
+    await this.checkEnabled();
+
+    const nip47Result = await this.client.getInfo();
+
+    const result = nip47Result as Nip47GetInfoResponse;
+
+    this.notify("getInfo", result);
+    return result;
   }
 
   async getInfo(): Promise<GetInfoResponse> {
@@ -303,6 +321,16 @@ export class NostrWebLNProvider implements WebLNProvider, Nip07Provider {
 
     this.notify("listTransactions", result);
 
+    return result;
+  }
+
+  async listUtxos(): Promise<ListUtxoResponse> {
+    await this.checkEnabled();
+    const nip47Result = await this.client.listUtxos();
+
+    const result = nip47Result as ListUtxoResponse;
+
+    this.notify("getUtxo", nip47Result);
     return result;
   }
 
